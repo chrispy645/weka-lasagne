@@ -1,0 +1,11 @@
+weka.lasagne.layers.Layer =\
+ weka.lasagne.layers
+
+weka.lasagne.nonlinearities.NonLinearity =\
+ weka.lasagne.nonlinearities
+
+weka.lasagne.updates.Update =\
+ weka.lasagne.updates
+
+weka.lasagne.objectives.Objective =\
+ weka.lasagne.objectives
