@@ -6,5 +6,6 @@ public class Constants {
 	public static final String FILTER_SIZE = "filter_size";
 	public static final String NON_LINEARITY = "nonlinearity";
 	public static final String SIGMA = "sigma";
+	public static final String P = "p";
 
 }

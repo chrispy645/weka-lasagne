@@ -232,19 +232,19 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		// construct the layers
 		StringBuilder layerString = new StringBuilder();
 		Layer[] layers = getLayers();
-		layerString.append( String.format("in_layer = InputLayer( (None, len(args[\"attributes\"])-1) )\n", data.numAttributes()-1) );
+		layerString.append( String.format("in_layer = InputLayer( (None, 1, len(args[\"attributes\"])-1) )\n", data.numAttributes()-1) );
 		int hiddenLayers = 1;
 		String lastLayerName = "in_layer";
 		for(Layer layer : layers) {
 			layerString.append( String.format("%sl_prev = %s\n", tab, lastLayerName));
-			layerString.append( String.format("%s%s = output_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
+			layerString.append( String.format("%soutput_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
 			String thisLayerName = String.format("hidden%d", hiddenLayers);
 			layerString.append( String.format("%s%s = %s\n", tab, thisLayerName, layer.getOutputString()) );
 			lastLayerName = thisLayerName;
 			hiddenLayers++;
 		}
-		layerString.append( String.format("%sprev_layer = %s\n", tab, lastLayerName) );
-		layerString.append( String.format("%s%s = output_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
+		layerString.append( String.format("%sl_prev = %s\n", tab, lastLayerName) );
+		layerString.append( String.format("%soutput_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
 		
 		String a = "linear";
 		if(data.numClasses() > 1) {

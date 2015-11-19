@@ -8,7 +8,8 @@ from theano import tensor as T
 import numpy as np
 
 def prepare(args):
-    X = T.fmatrix('X')
+    #X = T.fmatrix('X')
+    X = T.tensor3('X')
     y = T.ivector('y')
     output_shapes = []
     ##NETWORK##
@@ -37,6 +38,7 @@ def train(args):
     output_shapes = symbols["output_shapes"]
     
     X_train = np.asarray(args["X_train"], dtype="float32")
+    X_train = X_train.reshape( (X_train.shape[0], 1, X_train.shape[1]) )
     y_train = np.asarray(args["y_train"].flatten(), dtype="int32")
     
     ##UPDATES##
@@ -80,7 +82,8 @@ def test(args, model):
     lasagne.layers.set_all_param_values(out_layer, model[1])
 
     X_test = np.asarray(args["X_test"], dtype="float32")
-
+    X_test = X_test.reshape( (X_test.shape[0], 1, X_test.shape[1]))
+    
     iter_test = theano.function(
         [X],
         label_vector
