@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import weka.core.Option;
 import weka.core.Utils;
+import weka.lasagne.Constants;
 
 public class Momentum extends Update {
 
@@ -40,7 +41,7 @@ public class Momentum extends Update {
 		for(int x = 0; x < tmp.length; x++) {
 			result.add(tmp[x]);
 		}
-		result.add("-m");
+		result.add("-" + Constants.MOMENTUM);
 		result.add("" + getMomentum());
 		return result.toArray( new String[result.size()] );
 	}
@@ -48,8 +49,8 @@ public class Momentum extends Update {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		super.setOptions(options);
-		String tmp = Utils.getOption('m', options);
-		setMomentum( Double.parseDouble(tmp) );
+		String tmp = Utils.getOption(Constants.MOMENTUM, options);
+		if(!tmp.equals("")) setMomentum( Double.parseDouble(tmp) );
 	}
 
 }

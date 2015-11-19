@@ -40,7 +40,7 @@ public class DropoutLayer extends Layer {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		String tmp = Utils.getOption(Constants.P, options);
-		setP( Double.parseDouble(tmp) );
+		if(!tmp.equals("")) setP( Double.parseDouble(tmp) );
 	}
 
 	@Override

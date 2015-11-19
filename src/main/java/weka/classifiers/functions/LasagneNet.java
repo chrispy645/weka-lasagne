@@ -18,6 +18,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.OptionHandler;
 import weka.core.Utils;
+import weka.lasagne.Constants;
 import weka.lasagne.layers.DenseLayer;
 import weka.lasagne.layers.Layer;
 import weka.lasagne.objectives.CategoricalCrossEntropy;
@@ -153,32 +154,51 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	    for (int i = 0; i < options.length; i++) {
 	      result.add(options[i]);
 	    }
+	    // layers
 	    for (int i = 0; i < getLayers().length; i++) {
-	      result.add("-L");
+	      result.add("-" + Constants.LAYER);
 	      result.add( getSpec(getLayers()[i]) );
 	    }
+	    // loss
+	    result.add("-" + Constants.LOSS);
+	    result.add( getSpec(getLossFunction()) );
+	    // update
+	    result.add("-" + Constants.UPDATE);
+	    result.add( getSpec(getUpdate()) );
+	    // num epochs
+	    result.add("-" + Constants.NUM_EPOCHS);
+	    result.add( "" + getNumEpochs() );
+	    // sgd batch size
+	    result.add("-" + Constants.SGD_BATCH_SIZE);
+	    result.add( "" + getSgdBatchSize() );
 	    return result.toArray(new String[result.size()]);
 	}
 	
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		super.setOptions(options);
+		// layers
 		Vector<Layer> layers = new Vector<Layer>();
 		String tmpStr = null;
-		String layer;
-		String[] options2;
-		while ((tmpStr = Utils.getOption("L", options)).length() != 0) {
-			//options2 = Utils.splitOptions(tmpStr);
-			//layer = options2[0];
-			//options2[0] = "";
-			//layers.add((Layer) Utils.forName(Layer.class, layer, options2));
-			
+		while ((tmpStr = Utils.getOption(Constants.LAYER, options)).length() != 0) {
 			layers.add( (Layer) specToObject(tmpStr, Layer.class) );
 		}
 		if (layers.size() == 0) {
 			layers.add(new DenseLayer());
 		}
 		setLayers( layers.toArray(new Layer[layers.size()]) );
+		// loss
+		tmpStr = Utils.getOption(Constants.LOSS, options);
+		if(!tmpStr.equals("")) setLossFunction( (Objective) specToObject(tmpStr, Objective.class) );
+		// update
+		tmpStr = Utils.getOption(Constants.UPDATE, options);
+		if(!tmpStr.equals("")) setUpdate( (Update) specToObject(tmpStr, Update.class) );
+		// num epochs
+		tmpStr = Utils.getOption(Constants.NUM_EPOCHS, options);
+		if(!tmpStr.equals("")) setNumEpochs( Integer.parseInt(tmpStr) );
+		// sgd batch size
+		tmpStr = Utils.getOption(Constants.SGD_BATCH_SIZE, options);
+		if(!tmpStr.equals("")) setSgdBatchSize( Integer.parseInt(tmpStr) );
 	}
 	
 	@Override

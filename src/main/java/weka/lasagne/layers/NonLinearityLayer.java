@@ -38,7 +38,7 @@ public class NonLinearityLayer extends Layer {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		String tmp = Utils.getOption(Constants.NON_LINEARITY, options);
-		setNonLinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class));
+		if(!tmp.equals("")) setNonLinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class));
 	}
 
 	@Override

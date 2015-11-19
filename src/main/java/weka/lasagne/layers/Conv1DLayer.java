@@ -71,14 +71,11 @@ public class Conv1DLayer extends Layer {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		String tmp = Utils.getOption(Constants.FILTER_SIZE, options);
-		setFilterSize( Integer.parseInt(tmp) );
-		
+		if(!tmp.equals("")) setFilterSize( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.NUM_FILTERS, options);
-		setNumFilters( Integer.parseInt(tmp) );
-		
+		if(!tmp.equals("")) setNumFilters( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.NON_LINEARITY, options);
-		setNonlinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class) );
-		
+		if(!tmp.equals("")) setNonlinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class) );	
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class GaussianNoiseLayer extends Layer {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		String tmp = Utils.getOption(Constants.SIGMA, options);
-		setSigma( Double.parseDouble(tmp) );
+		if(!tmp.equals("")) setSigma( Double.parseDouble(tmp) );
 	}
 	
 	@Override
@@ -56,7 +56,7 @@ public class GaussianNoiseLayer extends Layer {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("GaussianNoiseLayer\\n");
-		sb.append( String.format("  sigma = %s\\n", getSigma()) );
+		sb.append( String.format("  %s = %s\\n", Constants.SIGMA, getSigma()) );
 		return sb.toString();
 	}
 

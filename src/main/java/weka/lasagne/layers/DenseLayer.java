@@ -6,6 +6,7 @@ import java.util.Vector;
 import weka.classifiers.functions.LasagneNet;
 import weka.core.Option;
 import weka.core.Utils;
+import weka.lasagne.Constants;
 import weka.lasagne.nonlinearities.NonLinearity;
 import weka.lasagne.nonlinearities.Sigmoid;
 
@@ -55,18 +56,18 @@ public class DenseLayer extends Layer {
 
 	@Override
 	public void setOptions(String[] options) throws Exception {
-		String tmp = Utils.getOption('u', options);
-		setNumUnits( Integer.parseInt(tmp) );
-		tmp = Utils.getOption('l', options);
-		setNonLinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class) );
+		String tmp = Utils.getOption(Constants.NUM_UNITS, options);
+		if(!tmp.equals("")) setNumUnits( Integer.parseInt(tmp) );
+		tmp = Utils.getOption(Constants.NON_LINEARITY, options);
+		if(!tmp.equals("")) setNonLinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class) );
 	}
 
 	@Override
 	public String[] getOptions() {
 		Vector<String> result = new Vector<String>();
-		result.add("-u");
+		result.add("-" + Constants.NUM_UNITS);
 		result.add( "" + getNumUnits() );
-		result.add("-n");
+		result.add("-" + Constants.NON_LINEARITY);
 		result.add( "" + LasagneNet.getSpec(getNonLinearity()) );
 	    return result.toArray(new String[result.size()]);
 	}
@@ -75,8 +76,8 @@ public class DenseLayer extends Layer {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("DenseLayer\\n");
-		sb.append( String.format("  num_units = %d\\n", getNumUnits()) );
-		sb.append( String.format("  nonlinearity = %s\\n", getNonLinearity().toString()) );
+		sb.append( String.format("  %s = %d\\n", Constants.NUM_UNITS, getNumUnits()) );
+		sb.append( String.format("  %s = %s\\n", Constants.NON_LINEARITY, getNonLinearity().toString()) );
 		return sb.toString();
 	}
 
