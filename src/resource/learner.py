@@ -10,6 +10,7 @@ import numpy as np
 def prepare(args):
     X = T.fmatrix('X')
     y = T.ivector('y')
+    output_shapes = []
     ##NETWORK##
     all_params = lasagne.layers.get_all_params(out_layer)
     prediction = lasagne.layers.get_output(out_layer, X)
@@ -20,7 +21,8 @@ def prepare(args):
         "out_layer": out_layer,
         "all_params": all_params,
         "loss": loss,
-        "prediction": prediction
+        "prediction": prediction,
+        "output_shapes": output_shapes,
     }
 
 def train(args):
@@ -32,6 +34,7 @@ def train(args):
     prediction = symbols["prediction"]
     loss = symbols["loss"]
     out_layer = symbols["out_layer"]
+    output_shapes = symbols["output_shapes"]
     
     X_train = np.asarray(args["X_train"], dtype="float32")
     y_train = np.asarray(args["y_train"].flatten(), dtype="int32")
@@ -59,10 +62,14 @@ def train(args):
             batch_train_losses.append(this_loss)
             b += 1
     
-    return get_all_param_values(out_layer)
+    return ( output_shapes, get_all_param_values(out_layer) )
 
 def describe(args, model):
+    desc = []
+    for st in model[0]:
+        desc.append( str(st) )
     ##DESCRIBE##
+    return "\n".join(desc)
 
 def test(args, model):
     symbols = prepare(args)
@@ -70,7 +77,7 @@ def test(args, model):
     X = symbols["X"]
     label_vector = symbols["prediction"]
     
-    lasagne.layers.set_all_param_values(out_layer, model)
+    lasagne.layers.set_all_param_values(out_layer, model[1])
 
     X_test = np.asarray(args["X_test"], dtype="float32")
 
@@ -81,6 +88,6 @@ def test(args, model):
 
     preds = iter_test(X_test).tolist()
 
-    print preds
+    #print preds
     
     return preds

@@ -3,6 +3,7 @@ package weka.lasagne.layers;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import weka.classifiers.functions.LasagneNet;
 import weka.core.Option;
 import weka.core.Utils;
 import weka.lasagne.nonlinearities.NonLinearity;
@@ -31,7 +32,10 @@ public class DenseLayer extends Layer {
 	
 	@Override
 	public String getOutputString() {
-		return String.format("DenseLayer(l_prev, num_units=%d)", getNumUnits());
+		return String.format(
+				"DenseLayer(l_prev, num_units=%d, nonlinearity=%s)",
+				getNumUnits(), getNonLinearity().getOutputString()
+		);
 	}
 	
 	private NonLinearity m_nonLinearity = DEFAULT_NONLINEARITY;
@@ -51,20 +55,19 @@ public class DenseLayer extends Layer {
 
 	@Override
 	public void setOptions(String[] options) throws Exception {
-		super.setOptions(options);
 		String tmp = Utils.getOption('u', options);
-		setNumUnits( Integer.parseInt(tmp) );	
+		setNumUnits( Integer.parseInt(tmp) );
+		tmp = Utils.getOption('l', options);
+		setNonLinearity( (NonLinearity) LasagneNet.specToObject(tmp, NonLinearity.class) );
 	}
 
 	@Override
 	public String[] getOptions() {
 		Vector<String> result = new Vector<String>();
-		String[] superOptions = super.getOptions();
-		for(int x = 0; x < superOptions.length; x++) {
-			result.add(superOptions[x]);
-		}
 		result.add("-u");
 		result.add( "" + getNumUnits() );
+		result.add("-n");
+		result.add( "" + LasagneNet.getSpec(getNonLinearity()) );
 	    return result.toArray(new String[result.size()]);
 	}
 	

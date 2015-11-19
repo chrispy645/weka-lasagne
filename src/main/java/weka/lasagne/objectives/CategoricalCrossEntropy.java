@@ -1,5 +1,9 @@
 package weka.lasagne.objectives;
 
+/**
+ * Computes the categorical cross-entropy between predictions and targets.
+ * @author cjb60
+ */
 public class CategoricalCrossEntropy implements Objective {
 
 	private static final long serialVersionUID = -3976404263265270704L;
@@ -7,6 +11,10 @@ public class CategoricalCrossEntropy implements Objective {
 	@Override
 	public String getOutputString() {
 		return "categorical_crossentropy(prediction, y)";
+	}
+	
+	public String globalInfo() {
+		return "Computes the categorical cross-entropy between predictions and targets.";
 	}
 
 }

@@ -1,6 +1,7 @@
 package weka.lasagne.updates;
 
 import weka.core.OptionHandler;
+import weka.core.OptionMetadata;
 import weka.core.Utils;
 import weka.lasagne.Returnable;
 
@@ -12,6 +13,11 @@ public abstract class Update implements Returnable, OptionHandler {
 	
 	private double m_learningRate = DEFAULT_LEARNING_RATE;
 	
+    @OptionMetadata(
+	    displayName = "learningRate", commandLineParamName = "lr",
+	    description = "Learning rate",
+	    commandLineParamSynopsis = "-lr", displayOrder = 1
+    )
 	public double getLearningRate() {
 		return m_learningRate;
 	}

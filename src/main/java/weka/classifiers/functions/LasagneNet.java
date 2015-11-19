@@ -89,12 +89,28 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	
 	private Update m_update = DEFAULT_UPDATE;
 	
+	
 	public Update getUpdate() {
 		return m_update;
 	}
 	
 	public void setUpdate(Update update) {
 		m_update = update;
+	}
+	
+	/*
+	 * Debugging
+	 */
+	
+
+	private String m_dumpScript = null;
+	
+	public String getDumpScript() {
+		return m_dumpScript;
+	}
+	
+	public void setDumpScript(String dumpScript) {
+		m_dumpScript = dumpScript;
 	}
 
 	public static String getSpec(Object obj) {
@@ -109,6 +125,13 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 			}
 		}		
 		return result;
+	}
+	
+	public static Object specToObject(String str, Class<?> classType) throws Exception {	
+		String[] options = Utils.splitOptions(str);
+		String base = options[0];
+		options[0] = "";
+		return Utils.forName(classType, base, options);
 	}
 	
 	public String getTemplate() throws Exception {
@@ -145,10 +168,12 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		String layer;
 		String[] options2;
 		while ((tmpStr = Utils.getOption("L", options)).length() != 0) {
-			options2 = Utils.splitOptions(tmpStr);
-			layer = options2[0];
-			options2[0] = "";
-			layers.add((Layer) Utils.forName(Layer.class, layer, options2));
+			//options2 = Utils.splitOptions(tmpStr);
+			//layer = options2[0];
+			//options2[0] = "";
+			//layers.add((Layer) Utils.forName(Layer.class, layer, options2));
+			
+			layers.add( (Layer) specToObject(tmpStr, Layer.class) );
 		}
 		if (layers.size() == 0) {
 			layers.add(new DenseLayer());
@@ -166,8 +191,20 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		PrintWriter pw = new PrintWriter(tmpFile);
 		String code = getOutputString(data);
 		pw.write(code);
+		pw.flush();
 		pw.close();
-		System.out.println(code);
+		//System.out.println(code);
+		
+		if( getDumpScript() != null ) {
+			pw = new PrintWriter( new File(getDumpScript()) );
+			pw.write( getOutputString(data) );
+			pw.flush();
+			pw.close();
+		}
+		
+		if(getDebug()) {
+			System.err.println(code);
+		}
 		
 		m_cls.setPythonFile(tmpFile);
 		m_cls.buildClassifier(data);
@@ -200,15 +237,18 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		String lastLayerName = "in_layer";
 		for(Layer layer : layers) {
 			layerString.append( String.format("%sl_prev = %s\n", tab, lastLayerName));
+			layerString.append( String.format("%s%s = output_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
 			String thisLayerName = String.format("hidden%d", hiddenLayers);
 			layerString.append( String.format("%s%s = %s\n", tab, thisLayerName, layer.getOutputString()) );
 			lastLayerName = thisLayerName;
 			hiddenLayers++;
 		}
 		layerString.append( String.format("%sprev_layer = %s\n", tab, lastLayerName) );
+		layerString.append( String.format("%s%s = output_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
+		
 		String a = "linear";
 		if(data.numClasses() > 1) {
-			a = "sigmoid";
+			a = "softmax";
 		}
 		layerString.append( String.format("%sout_layer = DenseLayer(l_prev, num_units=%d, nonlinearity=%s)\n", tab, data.numClasses(), a) );
 		template = template.replace("##NETWORK##", layerString.toString());
@@ -225,12 +265,15 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		template = template.replace("##UPDATES##", updateString.toString());
 		
 		// describe string
-		StringBuilder describeString = new StringBuilder("Model description:\\n");
-		for(Layer layer : layers) {
-			describeString.append( String.format("  %s\\n", layer.toString()) );
-		}
+		//StringBuilder describeString = new StringBuilder();
+		//describeString.append("desc.append('model_description')\n");
+		//for(Layer layer : layers) {
+		//	describeString.append(String.format("%sdesc.append(%s)\n", tab, layer.toString()));
+		//}
+		//describeString.append( "\n.join([str(x) for x in model[0]])\n");
 		
-		template = template.replace("##DESCRIBE##", "return '" + describeString.toString() + "'");
+		//template = template.replace("##DESCRIBE##", describeString.toString());
+		template = template.replace("##DESCRIBE##", "#text");
 		
 		return template;
 		
@@ -240,6 +283,11 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	public String toString() {
 		if(m_cls == null) return null;
 		else return m_cls.getModelString();
+	}
+	
+	@Override
+	public boolean implementsMoreEfficientBatchPrediction() {
+		return true;
 	}
 	
 	public static void main(String[] argv) {
