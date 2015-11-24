@@ -6,3 +6,5 @@ weka.lasagne.nonlinearities.NonLinearity=weka.gui.GenericObjectEditor
 weka.lasagne.updates.Update=weka.gui.GenericObjectEditor
 
 weka.lasagne.objectives.Objective=weka.gui.GenericObjectEditor
+weka.lasagne.objectives.ClassificationObjective=weka.gui.GenericObjectEditor
+weka.lasagne.objectives.RegressionObjective=weka.gui.GenericObjectEditor

@@ -18,7 +18,15 @@ public class TestPythonScript {
 		DataSource iris = new DataSource("datasets/iris.arff");
 		Instances data = iris.getDataSet();
 		data.setClassIndex( data.numAttributes() - 1);
-		System.out.println( net.getOutputString(data) );
+		
+		net.setOutFile("/tmp/out.txt");
+		net.setNumEpochs(100);
+		net.setBatchSize("100000");
+		net.setSgdBatchSize(1000);
+		
+		//System.out.println( net.getOutputString(data) );
+		
+		net.buildClassifier(data);
 		
 	}
 

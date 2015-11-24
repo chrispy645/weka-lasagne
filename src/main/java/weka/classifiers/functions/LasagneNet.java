@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.RandomizableClassifier;
 import weka.classifiers.pyscript.PyScriptClassifier;
 import weka.core.BatchPredictor;
 import weka.core.Instance;
@@ -23,10 +24,12 @@ import weka.lasagne.layers.DenseLayer;
 import weka.lasagne.layers.Layer;
 import weka.lasagne.objectives.CategoricalCrossEntropy;
 import weka.lasagne.objectives.Objective;
+import weka.lasagne.objectives.RegressionObjective;
+import weka.lasagne.objectives.SquaredError;
 import weka.lasagne.updates.Sgd;
 import weka.lasagne.updates.Update;
 
-public class LasagneNet extends AbstractClassifier implements BatchPredictor {
+public class LasagneNet extends RandomizableClassifier implements BatchPredictor {
 
 	private static final long serialVersionUID = 1125617871340073201L;
 	
@@ -101,8 +104,7 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	
 	/*
 	 * Debugging
-	 */
-	
+	 */	
 
 	private String m_dumpScript = null;
 	
@@ -112,6 +114,16 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	
 	public void setDumpScript(String dumpScript) {
 		m_dumpScript = dumpScript;
+	}
+	
+	private String m_outFile = "";
+	
+	public String getOutFile() {
+		return m_outFile;
+	}
+	
+	public void setOutFile(String outFile) {
+		m_outFile = outFile;
 	}
 
 	public static String getSpec(Object obj) {
@@ -171,6 +183,9 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 	    // sgd batch size
 	    result.add("-" + Constants.SGD_BATCH_SIZE);
 	    result.add( "" + getSgdBatchSize() );
+	    // out file
+	    result.add( "-" + Constants.OUT_FILE );
+	    result.add( getOutFile() );
 	    return result.toArray(new String[result.size()]);
 	}
 	
@@ -199,13 +214,35 @@ public class LasagneNet extends AbstractClassifier implements BatchPredictor {
 		// sgd batch size
 		tmpStr = Utils.getOption(Constants.SGD_BATCH_SIZE, options);
 		if(!tmpStr.equals("")) setSgdBatchSize( Integer.parseInt(tmpStr) );
+		// outfile
+		tmpStr = Utils.getOption(Constants.OUT_FILE, options);
+		if(!tmpStr.equals("")) setOutFile(tmpStr);
+	}
+	
+	public void checkConfiguration(Instances data) throws Exception {
+		// if the problem is a regression, then the loss must be squared error
+		if( data.numClasses() == 1 && !(getLossFunction() instanceof RegressionObjective) ) {
+			throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
+		}
 	}
 	
 	@Override
 	public void buildClassifier(Instances data) throws Exception {
+		
+		checkConfiguration(data);
+		
 		m_cls = new PyScriptClassifier();
 		m_cls.setPrintStdOut(true);
-		m_cls.setArguments( String.format("num_epochs=%d;batch_size=%d", getNumEpochs(), getSgdBatchSize() ) );
+		String args = String.format("num_epochs=%d;batch_size=%d;seed=%d",
+				getNumEpochs(), getSgdBatchSize(), getSeed() );
+		if(data.numClasses() == 1) {
+			args = args + ";regression=True";
+		}
+		if( !getOutFile().equals("") ) {
+			args = args + ";out_file=" + "'" + getOutFile() + "'";
+		}
+		m_cls.setArguments(args);
+		m_cls.setSaveScript(true);
 		
 		File tmpFile = File.createTempFile("script", ".py");
 		PrintWriter pw = new PrintWriter(tmpFile);

@@ -1,4 +1,5 @@
 import lasagne
+import random
 from lasagne.objectives import *
 from lasagne.nonlinearities import *
 from lasagne.layers import *
@@ -6,11 +7,19 @@ from lasagne.updates import *
 import theano
 from theano import tensor as T
 import numpy as np
+import os
 
 def prepare(args):
+    np.random.seed( args["seed"] )
+    random.seed( args["seed"] )
     #X = T.fmatrix('X')
+
     X = T.tensor3('X')
-    y = T.ivector('y')
+    if "regression" in args:
+        y = T.fmatrix('y')
+    else:
+        y = T.ivector('y')
+    
     output_shapes = []
     ##NETWORK##
     all_params = lasagne.layers.get_all_params(out_layer)
@@ -38,31 +47,40 @@ def train(args):
     output_shapes = symbols["output_shapes"]
     
     X_train = np.asarray(args["X_train"], dtype="float32")
+    if "regression" not in args:
+        y_train = np.asarray(args["y_train"].flatten(), dtype="int32")
+    else:
+        y_train = np.asarray(args["y_train"], dtype="float32")
+        
     X_train = X_train.reshape( (X_train.shape[0], 1, X_train.shape[1]) )
-    y_train = np.asarray(args["y_train"].flatten(), dtype="int32")
     
     ##UPDATES##
     label_vector = prediction
     
     iter_train = theano.function(
         [X, y],
-        [label_vector],
+        [loss, label_vector],
         updates=updates
     )
-
+    if "out_file" not in args:
+        args["out_file"] = os.devnull
     bs = args["batch_size"]
     num_epochs = args["num_epochs"]
-    batch_train_losses = []
-    for e in range(0, num_epochs):
-        b = 0
-        while True:
-            if b*bs >= X_train.shape[0]:
-                break
-            X_train_batch = X_train[b*bs : (b+1)*bs]
-            y_train_batch = y_train[b*bs : (b+1)*bs]
-            this_loss = iter_train(X_train_batch, y_train_batch)
-            batch_train_losses.append(this_loss)
-            b += 1
+    with open(args["out_file"],"wb",0) as f:
+        f.write("epoch,train_loss\n")
+        for e in range(0, num_epochs):
+            batch_train_losses = []
+            b = 0
+            while True:
+                if b*bs >= X_train.shape[0]:
+                    break
+                X_train_batch = X_train[b*bs : (b+1)*bs]
+                y_train_batch = y_train[b*bs : (b+1)*bs]
+                this_loss, _ = iter_train(X_train_batch, y_train_batch)
+                batch_train_losses.append(this_loss)
+                b += 1
+            this_loss_mean = np.mean(batch_train_losses)
+            f.write("%i,%f\n" % (e+1, this_loss_mean))
     
     return ( output_shapes, get_all_param_values(out_layer) )
 
