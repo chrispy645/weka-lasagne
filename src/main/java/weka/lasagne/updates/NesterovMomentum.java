@@ -6,8 +6,11 @@ public class NesterovMomentum extends Momentum {
 
 	@Override
 	public String getOutputString() {
-		return String.format( "nesterov_momentum(%s, %s, learning_rate=%f, momentum=%f)", "loss", "all_params",
-				getLearningRate(), getMomentum() );
+		StringBuilder sb = new StringBuilder();
+		sb.append("kw[\"update\"] = nesterov_momentum; ");
+		sb.append(String.format("kw[\"update_learning_rate\"] = %f; ", getLearningRate()));
+		sb.append(String.format("kw[\"update_momentum\"] = %f;", getMomentum()));
+		return sb.toString();
 	}
 
 }

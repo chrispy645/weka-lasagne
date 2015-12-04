@@ -11,7 +11,7 @@ public class BinaryCrossEntropy implements Objective {
 
 	@Override
 	public String getOutputString() {
-		return "binary_crossentropy(prediction, y)";
+		return "binary_crossentropy";
 	}
 	
 	public String globalInfo() {

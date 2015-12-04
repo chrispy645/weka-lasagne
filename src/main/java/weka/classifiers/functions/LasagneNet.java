@@ -148,7 +148,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	}
 	
 	public String getTemplate() throws Exception {
-		InputStream is = this.getClass().getResourceAsStream("/learner.py");
+		InputStream is = this.getClass().getResourceAsStream("/learner_nolearn.py");
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		StringBuilder sb = new StringBuilder();
 		while(br.ready()) {
@@ -236,10 +236,10 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		String args = String.format("num_epochs=%d;batch_size=%d;seed=%d",
 				getNumEpochs(), getSgdBatchSize(), getSeed() );
 		if(data.numClasses() == 1) {
-			args = args + ";regression=True";
+			args = args + ";regression=1";
 		}
 		if( !getOutFile().equals("") ) {
-			args = args + ";out_file=" + "'" + getOutFile() + "'";
+			args = args + ";regression=0;out_file=" + "'" + new File(getOutFile()).getAbsolutePath() + "'";
 		}
 		m_cls.setArguments(args);
 		m_cls.setSaveScript(true);
@@ -282,55 +282,51 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	}
 
 	public String getOutputString(Instances data) throws Exception {
-		String template = getTemplate();
-		
+		String template = getTemplate();		
 		String tab = "    ";
-		
 		// construct the layers
 		StringBuilder layerString = new StringBuilder();
 		Layer[] layers = getLayers();
-		layerString.append( String.format("in_layer = InputLayer( (None, 1, len(args[\"attributes\"])-1) )\n", data.numAttributes()-1) );
-		int hiddenLayers = 1;
-		String lastLayerName = "in_layer";
+		// build the layer_conf string
+		layerString.append("kw = {}\n");
+		layerString.append(String.format("%slayer_conf = [\n", tab));
+		int counter = 1;
+		layerString.append( String.format("%s%s%s,\n", tab, tab, "(\"input\", InputLayer)") );
 		for(Layer layer : layers) {
-			layerString.append( String.format("%sl_prev = %s\n", tab, lastLayerName));
-			layerString.append( String.format("%soutput_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
-			String thisLayerName = String.format("hidden%d", hiddenLayers);
-			layerString.append( String.format("%s%s = %s\n", tab, thisLayerName, layer.getOutputString()) );
-			lastLayerName = thisLayerName;
-			hiddenLayers++;
+			layer.setName("layer" + counter);
+			counter++;
+			String tp0 = layer.getName();
+			String tp1 = layer.getClassName();
+			String tuple = String.format("(%s, %s)", "\"" + tp0 + "\"", tp1);
+			layerString.append( String.format("%s%s%s,\n", tab, tab, tuple ) );
 		}
-		layerString.append( String.format("%sl_prev = %s\n", tab, lastLayerName) );
-		layerString.append( String.format("%soutput_shapes.append(l_prev.output_shape)\n", tab, lastLayerName) );
-		
-		String a = "linear";
-		if(data.numClasses() > 1) {
-			a = "softmax";
+		layerString.append( String.format("%s%s%s,\n", tab, tab, "(\"output\", DenseLayer)") );
+		layerString.append(String.format("%s]\n", tab));
+		layerString.append(String.format("%skw[\"layers\"] = layer_conf\n", tab));
+		// keywords for layers
+		layerString.append( String.format("%s%s\n", tab, "kw[\"input_shape\"] = ( (None, 1, len(args[\"attributes\"])-1) )") );
+		for(Layer layer : layers) {
+			layerString.append( String.format("%s%s\n", tab, layer.getOutputString() ));
 		}
-		layerString.append( String.format("%sout_layer = DenseLayer(l_prev, num_units=%d, nonlinearity=%s)\n", tab, data.numClasses(), a) );
-		template = template.replace("##NETWORK##", layerString.toString());
+		// output layer
+		layerString.append(String.format("%skw[\"output_nonlinearity\"] = linear if \"regression\" in args else softmax\n", tab));
+		layerString.append(String.format("%skw[\"output_num_units\"] = %d\n", tab, data.numClasses()));
 		
-		// construct the loss
-		StringBuilder lossString = new StringBuilder();
-		lossString.append( String.format("loss = %s\n", getLossFunction().getOutputString() ) );
-		lossString.append( String.format("%sloss = loss.mean()\n", tab) );
-		template = template.replace("##LOSS##", lossString.toString());
-		
-		// construct the updates
-		StringBuilder updateString = new StringBuilder();
-		updateString.append( String.format("updates = %s", getUpdate().getOutputString()) );
-		template = template.replace("##UPDATES##", updateString.toString());
-		
-		// describe string
-		//StringBuilder describeString = new StringBuilder();
-		//describeString.append("desc.append('model_description')\n");
-		//for(Layer layer : layers) {
-		//	describeString.append(String.format("%sdesc.append(%s)\n", tab, layer.toString()));
-		//}
-		//describeString.append( "\n.join([str(x) for x in model[0]])\n");
-		
-		//template = template.replace("##DESCRIBE##", describeString.toString());
-		template = template.replace("##DESCRIBE##", "#text");
+		// loss function
+		layerString.append(String.format("%skw[\"objective_loss_function\"] = %s\n", tab, getLossFunction().getOutputString()));
+		// is it a regression
+		layerString.append(String.format("%skw[\"regression\"] = args[\"regression\"]\n", tab));
+		// updates
+		layerString.append(String.format("%s%s\n", tab, getUpdate().getOutputString()));
+		// epochs
+		layerString.append(String.format("%skw[\"max_epochs\"] = %d\n", tab, getNumEpochs() ));
+		// verbose
+		layerString.append(String.format("%skw[\"verbose\"] = 1\n", tab));
+		// create the net
+		layerString.append(String.format("%snet = NeuralNet(**kw)\n", tab));
+		layerString.append(String.format("%sreturn net", tab));
+
+		template = template.replace("##GET_NET##", layerString.toString());
 		
 		return template;
 		

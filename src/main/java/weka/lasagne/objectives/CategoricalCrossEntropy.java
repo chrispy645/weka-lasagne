@@ -10,7 +10,7 @@ public class CategoricalCrossEntropy implements Objective {
 
 	@Override
 	public String getOutputString() {
-		return "categorical_crossentropy(prediction, y)";
+		return "categorical_crossentropy";
 	}
 	
 	public String globalInfo() {

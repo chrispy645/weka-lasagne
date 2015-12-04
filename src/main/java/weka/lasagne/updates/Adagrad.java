@@ -33,7 +33,11 @@ public class Adagrad extends Update {
 	
 	@Override
 	public String getOutputString() {
-		return String.format( "adagrad(%s, %s, learning_rate=%f, epsilon=%f)", "loss", "all_params", getLearningRate(), getEpsilon() );
+		StringBuilder sb = new StringBuilder();
+		sb.append("kw[\"update\"] = adagrad; ");
+		sb.append(String.format("kw[\"update_learning_rate\"] = %f; ", getLearningRate()));
+		sb.append(String.format("kw[\"update_epsilon\"] = %f;", getEpsilon()));
+		return sb.toString();
 	}
 
 	@Override

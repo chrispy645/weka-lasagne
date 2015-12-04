@@ -18,6 +18,11 @@ import weka.lasagne.nonlinearities.Sigmoid;
 public class Conv1DLayer extends Layer {
 	
 	private static final long serialVersionUID = -5748457426809180995L;
+	
+	@Override
+	public String getClassName() {
+		return "Conv1DLayer";
+	}
 
 	public static final int DEFAULT_NUM_FILTERS = 10;
 	
@@ -57,10 +62,11 @@ public class Conv1DLayer extends Layer {
 
 	@Override
 	public String getOutputString() {
-		return String.format(
-				"Conv1DLayer(l_prev, num_filters=%d, filter_size=%d, nonlinearity=%s)",
-				getNumFilters(), getFilterSize(), getNonlinearity().getOutputString()
-		);	
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"%s_%s\"] = %d; ", getName(), "num_filters", getNumFilters() ) );
+		sb.append(String.format("kw[\"%s_%s\"] = %d; ", getName(), "filter_size", getFilterSize() ) );
+		sb.append(String.format("kw[\"%s_%s\"] = %s", getName(), "nonlinearity", getNonlinearity().getOutputString() ) );
+		return sb.toString();
 	}
 
 	@Override

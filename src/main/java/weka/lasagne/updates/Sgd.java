@@ -13,7 +13,10 @@ public class Sgd extends Update {
 
 	@Override
 	public String getOutputString() {
-		return String.format( "sgd(%s, %s, learning_rate=%f)", "loss", "all_params", getLearningRate() );
+		StringBuilder sb = new StringBuilder();
+		sb.append("kw[\"update\"] = sgd; ");
+		sb.append(String.format("kw[\"update_learning_rate\"] = %f;", getLearningRate()));
+		return sb.toString();
 	}
 
 	@Override

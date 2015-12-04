@@ -14,6 +14,11 @@ import weka.lasagne.Constants;
 public class DropoutLayer extends Layer {
 	
 	private static final long serialVersionUID = -5960114193635163469L;
+	
+	@Override
+	public String getClassName() {
+		return "DropoutLayer";
+	}
 
 	public static final double DEFAULT_P = 0.5;
 	
@@ -29,7 +34,9 @@ public class DropoutLayer extends Layer {
 
 	@Override
 	public String getOutputString() {
-		return String.format( "DropoutLayer(l_prev, p=%f)", getP() );
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"%s_%s\"] = %d", getName(), "p", getP() ) );
+		return sb.toString();
 	}
 
 	@Override

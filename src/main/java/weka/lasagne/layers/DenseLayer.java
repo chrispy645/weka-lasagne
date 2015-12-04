@@ -18,6 +18,11 @@ public class DenseLayer extends Layer {
 	
 	private static final long serialVersionUID = -4158355845708293518L;
 	
+	@Override
+	public String getClassName() {
+		return "DenseLayer";
+	}
+	
 	public static final NonLinearity DEFAULT_NONLINEARITY = new Sigmoid();
 	public static final int DEFAULT_NUM_UNITS = 1;
 	
@@ -33,10 +38,10 @@ public class DenseLayer extends Layer {
 	
 	@Override
 	public String getOutputString() {
-		return String.format(
-				"DenseLayer(l_prev, num_units=%d, nonlinearity=%s)",
-				getNumUnits(), getNonLinearity().getOutputString()
-		);
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"%s_%s\"] = %d; ", getName(), "num_units", getNumUnits() ) );
+		sb.append(String.format("kw[\"%s_%s\"] = %s", getName(), "nonlinearity", getNonLinearity().getOutputString() ) );
+		return sb.toString();
 	}
 	
 	private NonLinearity m_nonLinearity = DEFAULT_NONLINEARITY;

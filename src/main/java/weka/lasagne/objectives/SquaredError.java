@@ -10,7 +10,7 @@ public class SquaredError implements Objective, RegressionObjective {
 
 	@Override
 	public String getOutputString() {
-		return "squared_error(prediction, y)";
+		return "squared_error";
 	}
 	
 	public String globalInfo() {

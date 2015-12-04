@@ -14,6 +14,11 @@ public class NonLinearityLayer extends Layer {
 
 	private static final long serialVersionUID = -5641193155799249411L;
 	
+	@Override
+	public String getClassName() {
+		return "NonLinearityLayer";
+	}
+	
 	private static NonLinearity DEFAULT_NONLINEARITY = new Rectify();
 	private NonLinearity m_nonlinearity = DEFAULT_NONLINEARITY;
 
@@ -27,7 +32,9 @@ public class NonLinearityLayer extends Layer {
 	
 	@Override
 	public String getOutputString() {
-		return String.format("NonlinearityLayer(l_prev, %s)", getNonLinearity().getOutputString());
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"%s_%s\"] = %s", getName(), "nonlinearity", getNonLinearity().getOutputString() ) );
+		return sb.toString();
 	}
 
 	@Override

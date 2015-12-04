@@ -25,8 +25,11 @@ public class Momentum extends Update {
 	
 	@Override
 	public String getOutputString() {
-		// momentum(loss_or_grads, params, learning_rate, momentum=0.9)
-		return String.format( "momentum(%s, %s, learning_rate=%f, momentum=%f)", "loss", "all_params", getLearningRate(), getMomentum() );
+		StringBuilder sb = new StringBuilder();
+		sb.append("kw[\"update\"] = momentum; ");
+		sb.append(String.format("kw[\"update_learning_rate\"] = %f; ", getLearningRate()));
+		sb.append(String.format("kw[\"update_momentum\"] = %f;", getMomentum()));
+		return sb.toString();
 	}
 
 	@Override

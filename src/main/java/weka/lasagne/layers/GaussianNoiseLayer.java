@@ -15,6 +15,11 @@ import weka.lasagne.Constants;
 public class GaussianNoiseLayer extends Layer {
 
 	private static final long serialVersionUID = -585452878729099259L;
+	
+	@Override
+	public String getClassName() {
+		return "GaussianNoiseLayer";
+	}
 
 	public static double DEFAULT_SIGMA = 0.1;
 	
@@ -44,7 +49,9 @@ public class GaussianNoiseLayer extends Layer {
 	
 	@Override
 	public String getOutputString() {
-		return String.format("GaussianNoiseLayer(l_prev, sigma=%f)", getSigma());
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"%s_%s\"] = %d", getName(), "sigma", getSigma() ) );
+		return sb.toString();
 	}
 
 	@Override
