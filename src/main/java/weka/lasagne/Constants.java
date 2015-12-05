@@ -12,11 +12,13 @@ public class Constants {
 	public static final String LAYER = "layer";
 	public static final String LOSS = "loss";
 	public static final String UPDATE = "update";
-	public static final String SGD_BATCH_SIZE = "bs";
+	public static final String SGD_BATCH_SIZE = "batch_size";
 	public static final String NUM_EPOCHS = "epochs";
 	public static final String NUM_UNITS = "num_units";
 	public static final String MOMENTUM = "momentum";
 	public static final String LEARNING_RATE = "learning_rate";
 	public static final String OUT_FILE = "out_file";
+	public static final String BATCH_ITERATOR = "batch_iterator";
+	public static final String VALID_SET_SIZE = "eval_size";
 
 }

@@ -5,6 +5,7 @@ import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.lasagne.layers.DenseLayer;
 import weka.lasagne.layers.Layer;
+import weka.nolearn.BatchIterator;
 
 public class TestPythonScript {
 	
@@ -22,9 +23,9 @@ public class TestPythonScript {
 		net.setOutFile("/tmp/out.txt");
 		net.setNumEpochs(100);
 		net.setBatchSize("100000");
-		net.setSgdBatchSize(1000);
+		net.setBatchIterator(new BatchIterator());
 		
-		//System.out.println( net.getOutputString(data) );
+		System.out.println( net.getOutputString(data) );
 		
 		net.buildClassifier(data);
 		

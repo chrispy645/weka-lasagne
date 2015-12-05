@@ -1,42 +1,26 @@
 from __future__ import print_function
-
 import lasagne
 from lasagne import *
 from lasagne.updates import *
 from lasagne.nonlinearities import *
 from lasagne.layers import *
 from lasagne.objectives import *
-
 from nolearn.lasagne import *
 from pyscript.pyscript import *
-
+from weka.nolearn.helper import *
 import gzip
 import os
 import numpy as np
 import sys
 import re
-
 try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
-
-def remove_colour(st):
-    ansi_escape = re.compile(r'\x1b[^m]*m')
-    return ansi_escape.sub('', st)
-
-class Capturing(list):
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        sys.stdout = self._stdout
-
+        
 def get_net(args):
     ##GET_NET##
-
+    
 def train(args):
     if args["regression"]:
         y_train = np.asarray(args["y_train"], dtype="float32")

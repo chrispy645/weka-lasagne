@@ -28,10 +28,22 @@ import weka.lasagne.objectives.RegressionObjective;
 import weka.lasagne.objectives.SquaredError;
 import weka.lasagne.updates.Sgd;
 import weka.lasagne.updates.Update;
+import weka.nolearn.AbstractBatchIterator;
+import weka.nolearn.BatchIterator;
 
 public class LasagneNet extends RandomizableClassifier implements BatchPredictor {
 
 	private static final long serialVersionUID = 1125617871340073201L;
+	
+	private float m_validSetSize = 0.0f;
+	
+	public void setValidSetSize(float validSetSize) {
+		m_validSetSize = validSetSize;
+	}
+	
+	public float getValidSetSize() {
+		return m_validSetSize;
+	}
 	
 	private Layer[] m_layers = new Layer[] { new DenseLayer() };
 	
@@ -43,16 +55,14 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		return m_layers;
 	}
 	
-	private static final int DEFAULT_SGD_BATCH_SIZE = 1;
+	private AbstractBatchIterator m_batchIterator = new BatchIterator();
 	
-	private int m_sgdBatchSize = DEFAULT_SGD_BATCH_SIZE;
-	
-	public int getSgdBatchSize() {
-		return m_sgdBatchSize;
+	public AbstractBatchIterator getBatchIterator() {
+		return m_batchIterator;
 	}
 	
-	public void setSgdBatchSize(int sgdBatchSize) {
-		m_sgdBatchSize = sgdBatchSize;
+	public void setBatchIterator(AbstractBatchIterator batchIterator) {
+		m_batchIterator = batchIterator;
 	}
 	
 	private static final int DEFAULT_NUM_EPOCHS = 1;
@@ -181,8 +191,11 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	    result.add("-" + Constants.NUM_EPOCHS);
 	    result.add( "" + getNumEpochs() );
 	    // sgd batch size
-	    result.add("-" + Constants.SGD_BATCH_SIZE);
-	    result.add( "" + getSgdBatchSize() );
+	    result.add("-" + Constants.BATCH_ITERATOR);
+	    result.add( getSpec(getBatchIterator()) );
+	    // valid set size
+	    result.add("-" + Constants.VALID_SET_SIZE);
+	    result.add( "" + getValidSetSize() );
 	    // out file
 	    result.add( "-" + Constants.OUT_FILE );
 	    result.add( getOutFile() );
@@ -211,9 +224,12 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		// num epochs
 		tmpStr = Utils.getOption(Constants.NUM_EPOCHS, options);
 		if(!tmpStr.equals("")) setNumEpochs( Integer.parseInt(tmpStr) );
-		// sgd batch size
-		tmpStr = Utils.getOption(Constants.SGD_BATCH_SIZE, options);
-		if(!tmpStr.equals("")) setSgdBatchSize( Integer.parseInt(tmpStr) );
+		// batch iterator
+		tmpStr = Utils.getOption(Constants.BATCH_ITERATOR, options);
+		if(!tmpStr.equals("")) setBatchIterator( (AbstractBatchIterator) specToObject(tmpStr, AbstractBatchIterator.class)  );
+		// valid set size
+		tmpStr = Utils.getOption(Constants.VALID_SET_SIZE, options);
+		if(!tmpStr.equals("")) setValidSetSize( Float.parseFloat(tmpStr) );
 		// outfile
 		tmpStr = Utils.getOption(Constants.OUT_FILE, options);
 		if(!tmpStr.equals("")) setOutFile(tmpStr);
@@ -233,13 +249,16 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		
 		m_cls = new PyScriptClassifier();
 		m_cls.setPrintStdOut(true);
-		String args = String.format("num_epochs=%d;batch_size=%d;seed=%d",
-				getNumEpochs(), getSgdBatchSize(), getSeed() );
+		String args = String.format("num_epochs=%d;seed=%d",
+				getNumEpochs(), getSeed() );
 		if(data.numClasses() == 1) {
 			args = args + ";regression=1";
+		} else {
+			args = args + ";regression=0";
 		}
+		
 		if( !getOutFile().equals("") ) {
-			args = args + ";regression=0;out_file=" + "'" + new File(getOutFile()).getAbsolutePath() + "'";
+			args = args + ";out_file=" + "'" + new File(getOutFile()).getAbsolutePath() + "'";
 		}
 		m_cls.setArguments(args);
 		m_cls.setSaveScript(true);
@@ -309,9 +328,13 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 			layerString.append( String.format("%s%s\n", tab, layer.getOutputString() ));
 		}
 		// output layer
-		layerString.append(String.format("%skw[\"output_nonlinearity\"] = linear if \"regression\" in args else softmax\n", tab));
+		layerString.append(String.format("%skw[\"output_nonlinearity\"] = linear if args[\"regression\"] else softmax\n", tab));
 		layerString.append(String.format("%skw[\"output_num_units\"] = %d\n", tab, data.numClasses()));
-		
+		// batch iterators
+		BatchIterator testIterator = new BatchIterator();
+		testIterator.setBatchSize( Integer.parseInt(getBatchSize()) );
+		layerString.append(String.format("%skw[\"batch_iterator_train\"] = %s\n", tab, getBatchIterator().getOutputString() ));
+		layerString.append(String.format("%skw[\"batch_iterator_test\"] = %s\n", tab, testIterator.getOutputString()));
 		// loss function
 		layerString.append(String.format("%skw[\"objective_loss_function\"] = %s\n", tab, getLossFunction().getOutputString()));
 		// is it a regression
@@ -322,6 +345,8 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		layerString.append(String.format("%skw[\"max_epochs\"] = %d\n", tab, getNumEpochs() ));
 		// verbose
 		layerString.append(String.format("%skw[\"verbose\"] = 1\n", tab));
+		// train split
+		layerString.append(String.format("%skw[\"train_split\"] = TrainSplit(eval_size=%f)\n", tab, getValidSetSize()));
 		// create the net
 		layerString.append(String.format("%snet = NeuralNet(**kw)\n", tab));
 		layerString.append(String.format("%sreturn net", tab));

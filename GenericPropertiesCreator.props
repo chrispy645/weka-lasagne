@@ -9,3 +9,6 @@ weka.lasagne.updates.Update =\
 
 weka.lasagne.objectives.Objective =\
  weka.lasagne.objectives
+
+weka.nolearn.AbstractBatchIterator =\
+ weka.nolearn
