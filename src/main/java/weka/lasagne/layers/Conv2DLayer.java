@@ -11,19 +11,14 @@ import weka.lasagne.nonlinearities.NonLinearity;
 import weka.lasagne.nonlinearities.Sigmoid;
 
 /**
- * 1D convolutional layer Performs a 1D convolution on its input and optionally adds 
+ * 2D convolutional layer. Performs a 2D convolution on its input and optionally adds
  * a bias and applies an elementwise nonlinearity.
  * @author cjb60
  */
-public class Conv1DLayer extends Layer {
-	
-	private static final long serialVersionUID = -5748457426809180995L;
-	
-	@Override
-	public String getClassName() {
-		return "Conv1DLayer";
-	}
+public class Conv2DLayer extends Layer {
 
+	private static final long serialVersionUID = -4243409354666807743L;
+	
 	public static final int DEFAULT_NUM_FILTERS = 10;
 	
 	private int m_numFilters = DEFAULT_NUM_FILTERS;
@@ -38,14 +33,24 @@ public class Conv1DLayer extends Layer {
 	
 	public static final int DEFAULT_FILTER_SIZE = 1;
 	
-	private int m_filterSize = DEFAULT_FILTER_SIZE;
+	private int m_filterSizeX = DEFAULT_FILTER_SIZE;
 	
-	public int getFilterSize() {
-		return m_filterSize;
+	public int getFilterSizeX() {
+		return m_filterSizeX;
 	}
 	
-	public void setFilterSize(int filterSize) {
-		m_filterSize = filterSize;
+	public void setFilterSizeX(int filterSizeX) {
+		m_filterSizeX = filterSizeX;
+	}
+	
+	private int m_filterSizeY = DEFAULT_FILTER_SIZE;
+	
+	public int getFilterSizeY() {
+		return m_filterSizeY;
+	}
+	
+	public void setFilterSizeY(int filterSizeY) {
+		m_filterSizeY = filterSizeY;
 	}
 	
 	public static final NonLinearity DEFAULT_NON_LINEARITY = new Sigmoid();
@@ -64,7 +69,7 @@ public class Conv1DLayer extends Layer {
 	public String getOutputString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("kw[\"%s_%s\"] = %d; ", getName(), Constants.NUM_FILTERS, getNumFilters() ) );
-		sb.append(String.format("kw[\"%s_%s\"] = %d; ", getName(), Constants.FILTER_SIZE, getFilterSize() ) );
+		sb.append(String.format("kw[\"%s_%s\"] = (%d,%d); ", getName(), Constants.FILTER_SIZE, getFilterSizeX(), getFilterSizeY() ) );
 		sb.append(String.format("kw[\"%s_%s\"] = %s", getName(), Constants.NON_LINEARITY, getNonlinearity().getOutputString() ) );
 		return sb.toString();
 	}
@@ -76,8 +81,10 @@ public class Conv1DLayer extends Layer {
 
 	@Override
 	public void setOptions(String[] options) throws Exception {
-		String tmp = Utils.getOption(Constants.FILTER_SIZE, options);
-		if(!tmp.equals("")) setFilterSize( Integer.parseInt(tmp) );
+		String tmp = Utils.getOption(Constants.FILTER_SIZE_X, options);
+		if(!tmp.equals("")) setFilterSizeX( Integer.parseInt(tmp) );
+		tmp = Utils.getOption(Constants.FILTER_SIZE_Y, options);
+		if(!tmp.equals("")) setFilterSizeY( Integer.parseInt(tmp) );		
 		tmp = Utils.getOption(Constants.NUM_FILTERS, options);
 		if(!tmp.equals("")) setNumFilters( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.NON_LINEARITY, options);
@@ -87,13 +94,20 @@ public class Conv1DLayer extends Layer {
 	@Override
 	public String[] getOptions() {
 		Vector<String> result = new Vector<String>();
-		result.add( "-" + Constants.FILTER_SIZE);
-		result.add( "" + getFilterSize() );
+		result.add( "-" + Constants.FILTER_SIZE_X);
+		result.add( "" + getFilterSizeX() );
+		result.add( "-" + Constants.FILTER_SIZE_Y);
+		result.add( "" + getFilterSizeY() );
 		result.add("-" + Constants.NUM_FILTERS);
 		result.add( "" + getNumFilters() );
 		result.add("-" + Constants.NON_LINEARITY);
 		result.add( "" + LasagneNet.getSpec(getNonlinearity()) );
 		return result.toArray(new String[result.size()]);
-	}	
+	}
 
+	@Override
+	public String getClassName() {
+		return "Conv2DLayer";
+	}
+	
 }

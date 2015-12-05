@@ -6,7 +6,7 @@ public class ShufflingBatchIterator extends BatchIterator {
 
 	@Override
 	public String getOutputString() {
-		return String.format("ShufflingBatchIterator(batch_size=%d)", getBatchSize());
+		return String.format("kw[\"batch_iterator_train\"] = ShufflingBatchIterator(batch_size=%d)", getBatchSize());
 	}
 	
 	public String globalInfo() {

@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import weka.core.Option;
 import weka.core.Utils;
+import weka.lasagne.Constants;
 
 /**
  * Adagrad updates. Scale learning rates by dividing with the square root of accumulated squared gradients.
@@ -52,7 +53,7 @@ public class Adagrad extends Update {
 		for(int x = 0; x < tmp.length; x++) {
 			result.add(tmp[x]);
 		}
-		result.add("-eps");
+		result.add("-" + Constants.EPSILON);
 		result.add("" + getEpsilon());
 		return result.toArray( new String[result.size()] );
 	}
@@ -60,8 +61,8 @@ public class Adagrad extends Update {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		super.setOptions(options);
-		String tmp = Utils.getOption("eps", options);
-		setEpsilon( Double.parseDouble(tmp) );
+		String tmp = Utils.getOption(Constants.EPSILON, options);
+		if(!tmp.equals("")) setEpsilon( Double.parseDouble(tmp) );
 	}
 
 }

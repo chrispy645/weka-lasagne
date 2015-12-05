@@ -25,7 +25,10 @@ public class BatchIterator extends AbstractBatchIterator {
 	
 	@Override
 	public String getOutputString() {
-		return String.format("BatchIterator(batch_size=%d)", getBatchSize());
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"batch_iterator_train\"] = BatchIterator(batch_size=%d); ", getBatchSize()));
+		sb.append("kw[\"batch_iterator_test\"] = BatchIterator(batch_size=%d)");
+		return sb.toString();
 	}
 	
 	@Override

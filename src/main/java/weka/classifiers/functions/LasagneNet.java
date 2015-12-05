@@ -30,6 +30,7 @@ import weka.lasagne.updates.Sgd;
 import weka.lasagne.updates.Update;
 import weka.nolearn.AbstractBatchIterator;
 import weka.nolearn.BatchIterator;
+import weka.nolearn.ImageBatchIterator;
 
 public class LasagneNet extends RandomizableClassifier implements BatchPredictor {
 
@@ -249,8 +250,9 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		
 		m_cls = new PyScriptClassifier();
 		m_cls.setPrintStdOut(true);
-		String args = String.format("num_epochs=%d;seed=%d",
-				getNumEpochs(), getSeed() );
+		//m_cls.setBatchSize( getBatchSize() );
+		String args = String.format("num_epochs=%d;seed=%d;batch_size=%s",
+				getNumEpochs(), getSeed(), getBatchSize() );
 		if(data.numClasses() == 1) {
 			args = args + ";regression=1";
 		} else {
@@ -322,8 +324,16 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		layerString.append( String.format("%s%s%s,\n", tab, tab, "(\"output\", DenseLayer)") );
 		layerString.append(String.format("%s]\n", tab));
 		layerString.append(String.format("%skw[\"layers\"] = layer_conf\n", tab));
+		// make sure images get the right input shape
+		if( ! (getBatchIterator() instanceof ImageBatchIterator) ) {
+			layerString.append( 
+					String.format("%s%s\n", tab, "kw[\"input_shape\"] = ( (None, 1, len(args[\"attributes\"])-1) )") );
+		} else {
+			layerString.append( 
+					String.format("%skw[\"input_shape\"] = ( (None, 1, %d, %d) )\n",
+							tab, ((ImageBatchIterator)getBatchIterator()).getWidth(), ((ImageBatchIterator)getBatchIterator()).getHeight() ) );
+		}
 		// keywords for layers
-		layerString.append( String.format("%s%s\n", tab, "kw[\"input_shape\"] = ( (None, 1, len(args[\"attributes\"])-1) )") );
 		for(Layer layer : layers) {
 			layerString.append( String.format("%s%s\n", tab, layer.getOutputString() ));
 		}
@@ -333,10 +343,13 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		// batch iterators
 		BatchIterator testIterator = new BatchIterator();
 		testIterator.setBatchSize( Integer.parseInt(getBatchSize()) );
-		layerString.append(String.format("%skw[\"batch_iterator_train\"] = %s\n", tab, getBatchIterator().getOutputString() ));
-		layerString.append(String.format("%skw[\"batch_iterator_test\"] = %s\n", tab, testIterator.getOutputString()));
+		layerString.append(String.format("%s%s\n", tab, getBatchIterator().getOutputString() ));
+		//System.err.println(getBatchIterator().getOutputString());
+		//layerString.append(String.format("%skw[\"batch_iterator_test\"] = %s\n", tab, testIterator.getOutputString()));
 		// loss function
-		layerString.append(String.format("%skw[\"objective_loss_function\"] = %s\n", tab, getLossFunction().getOutputString()));
+		layerString.append(String.format("%s%s\n", tab, getLossFunction().getOutputString()));
+		// loss function aux
+		//layerString.append(String.format("%s%s"))
 		// is it a regression
 		layerString.append(String.format("%skw[\"regression\"] = args[\"regression\"]\n", tab));
 		// updates

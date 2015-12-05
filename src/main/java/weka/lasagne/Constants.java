@@ -20,5 +20,13 @@ public class Constants {
 	public static final String OUT_FILE = "out_file";
 	public static final String BATCH_ITERATOR = "batch_iterator";
 	public static final String VALID_SET_SIZE = "eval_size";
-
+	public static final String L1 = "l1";
+	public static final String L2 = "l2";
+	public static final String WIDTH = "width";
+	public static final String HEIGHT = "height";
+	public static final String PREFIX = "prefix";
+	public static final String POOL_SIZE_X = "pool_size_x";
+	public static final String POOL_SIZE_Y = "pool_size_y";
+	public static final String EPSILON = "epsilon";
+	
 }

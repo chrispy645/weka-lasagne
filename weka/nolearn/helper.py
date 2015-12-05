@@ -50,10 +50,22 @@ class ShufflingBatchIterator(BatchIterator):
             yield res
 
 class ImageBatchIterator(BatchIterator):
-    def __init__(self, filenames, *args, **kwds):
-        super(FilenameToImageBatchIterator, self).__init__(*args, **kwds)
+    def __init__(self, filenames, prefix, *args, **kwds):
+        super(ImageBatchIterator, self).__init__(*args, **kwds)
         self.filenames = filenames
+        self.prefix = prefix
     def transform(self, Xb, yb):
         filenames = np.asarray( [ self.filenames[int(x)] for x in Xb.flatten().tolist() ] )
-        Xb_actual = np.asarray( [ load_image(x) for x in filenames ], dtype="float32" )
+        if self.prefix == "":
+            Xb_actual = np.asarray( [ load_image(x) for x in filenames ], dtype="float32" )
+        else:
+            Xb_actual = np.asarray( [ load_image(self.prefix + os.path.sep + x) for x in filenames ], dtype="float32" )
         return Xb_actual, yb
+
+class ReshapeBatchIterator(BatchIterator):
+    def __init__(self, new_xy, *args, **kwds):
+        super(ReshapeBatchIterator, self).__init__(*args, **kwds)
+        self.new_xy = new_xy
+    def transform(self, Xb, yb):
+        Xb = Xb.reshape( Xb.shape[0], Xb.shape[1], new_xy[0], new_xy[1] )
+        return Xb, yb
