@@ -33,6 +33,7 @@ public class Conv1DLayer extends Layer {
 	}
 	
 	public void setNumFilters(int numFilters) {
+		if(numFilters <= 0) throw new IllegalArgumentException("Number of filters cannot be <= 0!");
 		m_numFilters = numFilters;
 	}
 	
@@ -44,7 +45,9 @@ public class Conv1DLayer extends Layer {
 		return m_filterSize;
 	}
 	
-	public void setFilterSize(int filterSize) {
+	public void setFilterSize(int filterSize)
+	{
+		if(filterSize < 0) throw new IllegalArgumentException("Filter size cannot be <= 0!");
 		m_filterSize = filterSize;
 	}
 	
@@ -77,7 +80,7 @@ public class Conv1DLayer extends Layer {
 	@Override
 	public void setOptions(String[] options) throws Exception {
 		String tmp = Utils.getOption(Constants.FILTER_SIZE, options);
-		if(!tmp.equals("")) setFilterSize( Integer.parseInt(tmp) );
+		if(!tmp.equals("")) setFilterSize(Integer.parseInt(tmp));
 		tmp = Utils.getOption(Constants.NUM_FILTERS, options);
 		if(!tmp.equals("")) setNumFilters( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.NON_LINEARITY, options);

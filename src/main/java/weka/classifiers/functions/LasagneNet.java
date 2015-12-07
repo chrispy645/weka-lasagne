@@ -46,7 +46,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		return m_validSetSize;
 	}
 	
-	private Layer[] m_layers = new Layer[] { new DenseLayer() };
+	private Layer[] m_layers = new Layer[] { };
 	
 	public void setLayers(Layer[] layers) {
 		m_layers = layers;
@@ -239,6 +239,9 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	public void checkConfiguration(Instances data) throws Exception {
 		// if the problem is a regression, then the loss must be squared error
 		if( data.numClasses() == 1 && !(getLossFunction() instanceof RegressionObjective) ) {
+			throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
+		}
+		if( data.numClasses() > 1 && getLossFunction() instanceof RegressionObjective ) {
 			throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
 		}
 	}

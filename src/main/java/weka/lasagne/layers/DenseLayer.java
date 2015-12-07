@@ -33,6 +33,7 @@ public class DenseLayer extends Layer {
 	}
 	
 	public void setNumUnits(int numUnits) {
+		if(numUnits <= 0) throw new IllegalArgumentException("Number of units cannot be <= 0!");
 		m_numUnits = numUnits;
 	}
 	

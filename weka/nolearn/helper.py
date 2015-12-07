@@ -17,7 +17,9 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
-
+import theano
+from theano import tensor as T
+    
 def remove_colour(st):
     ansi_escape = re.compile(r'\x1b[^m]*m')
     return ansi_escape.sub('', st)
@@ -90,3 +92,6 @@ def save_stats_at_every(schedule, filename):
         if info[-1]["epoch"] % schedule == 0:
             write_stats(info, filename)
     return after_epoch
+
+def abs_error(a,b):
+    return T.abs_(a-b)

@@ -28,6 +28,7 @@ public class Conv2DLayer extends Layer {
 	}
 	
 	public void setNumFilters(int numFilters) {
+		if(numFilters <= 0) throw new IllegalArgumentException("Number of filters cannot be <= 0!");
 		m_numFilters = numFilters;
 	}
 	
@@ -40,6 +41,7 @@ public class Conv2DLayer extends Layer {
 	}
 	
 	public void setFilterSizeX(int filterSizeX) {
+		if(filterSizeX <= 0) throw new IllegalArgumentException("X filter size cannot be <= 0!");
 		m_filterSizeX = filterSizeX;
 	}
 	
@@ -50,6 +52,7 @@ public class Conv2DLayer extends Layer {
 	}
 	
 	public void setFilterSizeY(int filterSizeY) {
+		if(filterSizeY <= 0) throw new IllegalArgumentException("Y filter size cannot be <= 0!");
 		m_filterSizeY = filterSizeY;
 	}
 	

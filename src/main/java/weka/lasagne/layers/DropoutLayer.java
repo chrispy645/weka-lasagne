@@ -29,6 +29,7 @@ public class DropoutLayer extends Layer {
 	}
 	
 	public void setP(double p) {
+		if(p < 0) throw new IllegalArgumentException("p cannot be < 0!");
 		m_p = p;
 	}
 
