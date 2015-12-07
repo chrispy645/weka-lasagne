@@ -324,15 +324,9 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		layerString.append( String.format("%s%s%s,\n", tab, tab, "(\"output\", DenseLayer)") );
 		layerString.append(String.format("%s]\n", tab));
 		layerString.append(String.format("%skw[\"layers\"] = layer_conf\n", tab));
+				
 		// make sure images get the right input shape
-		if( ! (getBatchIterator() instanceof ImageBatchIterator) ) {
-			layerString.append( 
-					String.format("%s%s\n", tab, "kw[\"input_shape\"] = ( (None, 1, len(args[\"attributes\"])-1) )") );
-		} else {
-			layerString.append( 
-					String.format("%skw[\"input_shape\"] = ( (None, 1, %d, %d) )\n",
-							tab, ((ImageBatchIterator)getBatchIterator()).getWidth(), ((ImageBatchIterator)getBatchIterator()).getHeight() ) );
-		}
+		layerString.append( String.format("%s%s\n", tab, getBatchIterator().getOutputString()) );
 		// keywords for layers
 		for(Layer layer : layers) {
 			layerString.append( String.format("%s%s\n", tab, layer.getOutputString() ));
@@ -360,6 +354,10 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		layerString.append(String.format("%skw[\"verbose\"] = 1\n", tab));
 		// train split
 		layerString.append(String.format("%skw[\"train_split\"] = TrainSplit(eval_size=%f)\n", tab, getValidSetSize()));
+		// on epoch finished handler
+		if(!getOutFile().equals("")) {
+			layerString.append(String.format("%skw[\"on_epoch_finished\"] = [save_stats_at_every(1, %s)]\n", tab, "\"" + getOutFile() + "\"" ));
+		}
 		// create the net
 		layerString.append(String.format("%snet = NeuralNet(**kw)\n", tab));
 		layerString.append(String.format("%sreturn net", tab));

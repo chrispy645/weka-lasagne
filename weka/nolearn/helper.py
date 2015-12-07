@@ -67,5 +67,26 @@ class ReshapeBatchIterator(BatchIterator):
         super(ReshapeBatchIterator, self).__init__(*args, **kwds)
         self.new_xy = new_xy
     def transform(self, Xb, yb):
-        Xb = Xb.reshape( Xb.shape[0], Xb.shape[1], new_xy[0], new_xy[1] )
+        Xb = Xb.reshape( Xb.shape[0], Xb.shape[1], self.new_xy[0], self.new_xy[1] )
         return Xb, yb
+
+def write_stats(info, filename):
+    f = open(filename, "wb")
+    if "valid_accuracy" not in info[0]:
+        f.write("epoch,train_loss,train_loss_best,valid_loss,valid_loss_best,dur\n")
+    else:
+        f.write("epoch,train_loss,train_loss_best,valid_loss,valid_loss_best,valid_accuracy,dur\n")
+    for row in info:
+        if "valid_accuracy" not in row:
+            f.write("%f,%f,%f,%f,%f,%f\n" % (row["epoch"], row["train_loss"], \
+                row["train_loss_best"], row["valid_loss"], row["valid_loss_best"], row["dur"]))
+        else:
+            f.write("%f,%f,%f,%f,%f,%f,%f\n" % (row["epoch"], row["train_loss"], \
+                row["train_loss_best"], row["valid_loss"], row["valid_loss_best"], row["valid_accuracy"], row["dur"]))    
+    f.close()
+
+def save_stats_at_every(schedule, filename):
+    def after_epoch(net, info):
+        if info[-1]["epoch"] % schedule == 0:
+            write_stats(info, filename)
+    return after_epoch

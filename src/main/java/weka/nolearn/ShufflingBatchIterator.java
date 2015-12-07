@@ -6,7 +6,11 @@ public class ShufflingBatchIterator extends BatchIterator {
 
 	@Override
 	public String getOutputString() {
-		return String.format("kw[\"batch_iterator_train\"] = ShufflingBatchIterator(batch_size=%d)", getBatchSize());
+		StringBuilder sb = new StringBuilder();
+		sb.append("kw[\"input_shape\"] = (None, 1, len(args[\"attributes\"])-1); ");
+		sb.append(String.format("kw[\"batch_iterator_train\"] = ShufflingBatchIterator(batch_size=%d); ", getBatchSize()));
+		sb.append("kw[\"batch_iterator_test\"] = BatchIterator(batch_size=args[\"batch_size\"])");
+		return sb.toString();
 	}
 	
 	public String globalInfo() {

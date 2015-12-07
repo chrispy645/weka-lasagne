@@ -40,6 +40,7 @@ public class ImageBatchIterator extends BatchIterator {
 	@Override
 	public String getOutputString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
 		sb.append("filenames = args[\"attr_values\"][args[\"attributes\"][0]]; ");
 		sb.append(String.format(
 				"kw[\"batch_iterator_train\"] = ImageBatchIterator(filenames, %s, batch_size=%d); ", getPrefix(), getBatchSize()));
