@@ -5,20 +5,19 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Vector;
 
-import weka.classifiers.AbstractClassifier;
 import weka.classifiers.RandomizableClassifier;
 import weka.classifiers.pyscript.PyScriptClassifier;
 import weka.core.BatchPredictor;
+import weka.core.Capabilities;
+import weka.core.CapabilitiesHandler;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.OptionHandler;
+import weka.core.OptionMetadata;
 import weka.core.Utils;
+import weka.core.Capabilities.Capability;
 import weka.lasagne.Constants;
 import weka.lasagne.layers.DenseLayer;
 import weka.lasagne.layers.Layer;
@@ -30,19 +29,23 @@ import weka.lasagne.updates.Sgd;
 import weka.lasagne.updates.Update;
 import weka.nolearn.AbstractBatchIterator;
 import weka.nolearn.BatchIterator;
-import weka.nolearn.ImageBatchIterator;
 
-public class LasagneNet extends RandomizableClassifier implements BatchPredictor {
+public class LasagneNet extends RandomizableClassifier implements BatchPredictor, CapabilitiesHandler {
 
 	private static final long serialVersionUID = 1125617871340073201L;
 	
-	private float m_validSetSize = 0.0f;
+	public String globalInfo() {
+		return "Wrapper for the neural network library Lasagne";
+	}
 	
-	public void setValidSetSize(float validSetSize) {
+	private double m_validSetSize = 0.0f;
+	
+	public void setValidSetSize(double validSetSize) {
 		m_validSetSize = validSetSize;
 	}
 	
-	public float getValidSetSize() {
+	@OptionMetadata(description = "Validation set size", displayName = "validSetSize", displayOrder=6)
+	public double getValidSetSize() {
 		return m_validSetSize;
 	}
 	
@@ -52,12 +55,14 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		m_layers = layers;
 	}
 	
+	@OptionMetadata(description = "Layers", displayName = "layers", displayOrder=1)
 	public Layer[] getLayers() {
 		return m_layers;
 	}
 	
 	private AbstractBatchIterator m_batchIterator = new BatchIterator();
 	
+	@OptionMetadata(description = "Batch iterator", displayName = "batchIterator", displayOrder=2)
 	public AbstractBatchIterator getBatchIterator() {
 		return m_batchIterator;
 	}
@@ -70,6 +75,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	
 	private int m_numEpochs = DEFAULT_NUM_EPOCHS;
 	
+	@OptionMetadata(description = "Number of epochs", displayName = "numEpochs", displayOrder=5)
 	public int getNumEpochs() {
 		return m_numEpochs;
 	}
@@ -80,6 +86,14 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	
 	private PyScriptClassifier m_cls = new PyScriptClassifier();
 	
+	@Override
+	public Capabilities getCapabilities() {
+		Capabilities c = m_cls.getCapabilities();
+		c.disable(Capability.MISSING_VALUES);
+		c.disable(Capability.MISSING_CLASS_VALUES);
+		return c;
+	}
+	
 	/*
 	 * Loss functions
 	 */
@@ -88,6 +102,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	
 	private Objective m_lossFunction = DEFAULT_LOSS_FUNCTION;
 	
+	@OptionMetadata(description = "Loss function", displayName = "lossFunction", displayOrder=3)
 	public Objective getLossFunction() {
 		return m_lossFunction;
 	}
@@ -104,7 +119,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	
 	private Update m_update = DEFAULT_UPDATE;
 	
-	
+	@OptionMetadata(description = "Update", displayName = "update", displayOrder=4)
 	public Update getUpdate() {
 		return m_update;
 	}
@@ -119,7 +134,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 
 	private String m_dumpScript = null;
 	
-	public String getDumpScript() {
+	public String dumpScript() {
 		return m_dumpScript;
 	}
 	
@@ -129,6 +144,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	
 	private String m_outFile = "";
 	
+	@OptionMetadata(description = "Output file for training statistics", displayName = "outFile", displayOrder=7)
 	public String getOutFile() {
 		return m_outFile;
 	}
@@ -239,10 +255,16 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	public void checkConfiguration(Instances data) throws Exception {
 		// if the problem is a regression, then the loss must be squared error
 		if( data.numClasses() == 1 && !(getLossFunction() instanceof RegressionObjective) ) {
-			throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
+			System.err.println("Error: classification loss being used for a regression problem");
+			System.err.println("Changing loss to SquaredError...");
+			setLossFunction( new SquaredError() );
+			//throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
 		}
 		if( data.numClasses() > 1 && getLossFunction() instanceof RegressionObjective ) {
-			throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
+			System.err.println("Error: regression loss being used for a classification problem");
+			System.err.println("Changing loss to CategoricalCrossEntropy...");
+			setLossFunction( new CategoricalCrossEntropy() );
+			//throw new Exception("Bad loss function! Use a regression loss (such as squared error)");
 		}
 	}
 	
@@ -250,6 +272,7 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 	public void buildClassifier(Instances data) throws Exception {
 		
 		checkConfiguration(data);
+		getCapabilities().testWithFail(data);
 		
 		m_cls = new PyScriptClassifier();
 		m_cls.setPrintStdOut(true);
@@ -276,8 +299,8 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		pw.close();
 		//System.out.println(code);
 		
-		if( getDumpScript() != null ) {
-			pw = new PrintWriter( new File(getDumpScript()) );
+		if( dumpScript() != null ) {
+			pw = new PrintWriter( new File(dumpScript()) );
 			pw.write( getOutputString(data) );
 			pw.flush();
 			pw.close();

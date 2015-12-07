@@ -13,6 +13,7 @@ import os
 import numpy as np
 import sys
 import re
+import random
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -22,6 +23,8 @@ def get_net(args):
     ##GET_NET##
     
 def train(args):
+    np.random.seed( args["seed"] )
+    random.seed( args["seed"] )
     if args["regression"]:
         y_train = np.asarray(args["y_train"], dtype="float32")
     else:
