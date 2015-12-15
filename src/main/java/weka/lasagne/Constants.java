@@ -28,5 +28,9 @@ public class Constants {
 	public static final String POOL_SIZE_X = "pool_size_x";
 	public static final String POOL_SIZE_Y = "pool_size_y";
 	public static final String EPSILON = "epsilon";
+	public static final String VAL = "val";
+	public static final String MEAN = "mean";
+	public static final String STD = "std";
+	public static final String RGB = "rgb";
 	
 }

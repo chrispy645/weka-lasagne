@@ -13,6 +13,16 @@ public class ImageBatchIterator extends BatchIterator {
 	private int m_height = 0;
 	private String m_prefix = "\"\"";
 	
+	private boolean m_isRgb = false;
+	
+	public boolean getIsRgb() {
+		return m_isRgb;
+	}
+	
+	public void setIsRgb(boolean isRgb) {
+		m_isRgb = isRgb;
+	}
+	
 	public int getWidth() {
 		return m_width;
 	}
@@ -40,7 +50,9 @@ public class ImageBatchIterator extends BatchIterator {
 	@Override
 	public String getOutputString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
+		if(!getIsRgb()) sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
+		else sb.append(String.format("kw[\"input_shape\"] = (None, 3, %d, %d); ", getWidth(), getHeight()));
+		
 		sb.append("filenames = args[\"attr_values\"][args[\"attributes\"][0]]; ");
 		sb.append(String.format(
 				"kw[\"batch_iterator_train\"] = ImageBatchIterator(filenames, %s, batch_size=%d); ", getPrefix(), getBatchSize()));
@@ -62,6 +74,7 @@ public class ImageBatchIterator extends BatchIterator {
 		result.add("" + getHeight());
 		result.add("-" + Constants.PREFIX);
 		result.add("" + getPrefix());
+		if(getIsRgb()) result.add( "-" + Constants.RGB);
 		return result.toArray( new String[result.size()] );
 	}
 	
@@ -74,6 +87,7 @@ public class ImageBatchIterator extends BatchIterator {
 		if(!tmp.equals("")) setHeight( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.PREFIX, options);
 		if(!tmp.equals("")) setPrefix(tmp);
+		setIsRgb( Utils.getFlag(Constants.RGB, options) );
 	}
 	
 	public String globalInfo() {
