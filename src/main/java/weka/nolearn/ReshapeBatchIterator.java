@@ -33,10 +33,10 @@ public class ReshapeBatchIterator extends BatchIterator {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
 		sb.append(String.format(
-				"kw[\"batch_iterator_train\"] = ReshapeBatchIterator((%d,%d), batch_size=%d); ",
-				getWidth(), getHeight(), getBatchSize()));
+				"kw[\"batch_iterator_train\"] = ReshapeBatchIterator(tp=(%d,%d), shuffle=%d, batch_size=%d); ",
+				getWidth(), getHeight(), getShuffle() ? 1 : 0, getBatchSize()));
 		sb.append(String.format(
-				"kw[\"batch_iterator_test\"] = ReshapeBatchIterator((%d,%d), batch_size=args[\"batch_size\"]); ",
+				"kw[\"batch_iterator_test\"] = ReshapeBatchIterator(tp=(%d,%d), shuffle=0, batch_size=args[\"batch_size\"]); ",
 				getWidth(), getHeight()));
 		return sb.toString();
 	}

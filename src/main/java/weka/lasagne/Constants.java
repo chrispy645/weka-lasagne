@@ -32,5 +32,6 @@ public class Constants {
 	public static final String MEAN = "mean";
 	public static final String STD = "std";
 	public static final String RGB = "rgb";
+	public static final String SHUFFLE = "shuffle";
 	
 }

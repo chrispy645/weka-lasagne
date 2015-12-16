@@ -10,7 +10,7 @@ java -Xmx6g weka.Run .LasagneNet \
     -loss ".CategoricalCrossEntropy -l1 0.0 -l2 0.0" \
     -update ".Adagrad -learning_rate 0.1 -epsilon 1.0E-6" \
     -epochs 10 \
-    -batch_iterator ".ReshapeBatchIterator -batch_size 128 -width 28 -height 28" \
+    -batch_iterator ".ReshapeBatchIterator -batch_size 128 -shuffle -width 28 -height 28" \
     -eval_size 0.1 \
     -out_file /tmp/out.log \
     -t ../datasets/mnist.arff \

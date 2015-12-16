@@ -361,8 +361,6 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		layerString.append(String.format("%skw[\"output_nonlinearity\"] = linear if args[\"regression\"] else softmax\n", tab));
 		layerString.append(String.format("%skw[\"output_num_units\"] = %d\n", tab, data.numClasses()));
 		// batch iterators
-		BatchIterator testIterator = new BatchIterator();
-		testIterator.setBatchSize( Integer.parseInt(getBatchSize()) );
 		layerString.append(String.format("%s%s\n", tab, getBatchIterator().getOutputString() ));
 		//System.err.println(getBatchIterator().getOutputString());
 		//layerString.append(String.format("%skw[\"batch_iterator_test\"] = %s\n", tab, testIterator.getOutputString()));

@@ -5,6 +5,7 @@ from __future__ import print_function
 #from lasagne.nonlinearities import *
 #from lasagne.layers import *
 #from lasagne.objectives import *
+import nolearn.lasagne
 from nolearn.lasagne import *
 from pyscript.pyscript import *
 from skimage import io, img_as_float
@@ -36,7 +37,10 @@ class Capturing(list):
 def load_image(filename):
     img = io.imread(filename)
     img = img_as_float(img)
-    img = np.asarray( [ img ] )
+    if len(img.shape) == 3 and img.shape[2] == 3:
+        img = np.asarray( [ img[...,0], img[...,1], img[...,2] ] )
+    else:
+        img = np.asarray( [ img ] )
     return img
         
 def shuffle(*arrays):
@@ -44,11 +48,15 @@ def shuffle(*arrays):
     p = np.random.permutation(len(arrays[0]))
     return [array[p] for array in arrays]
 
-class ShufflingBatchIterator(BatchIterator):
+class BatchIterator(nolearn.lasagne.BatchIterator):
     # https://github.com/dnouri/nolearn/issues/27#issuecomment-71175381
+    def __init__(self, shuffle, *args, **kwds):
+        super(BatchIterator, self).__init__(*args, **kwds)
+        self.shuffle = shuffle
     def __iter__(self):
-        self.X, self.y = shuffle(self.X, self.y)
-        for res in super(ShufflingBatchIterator, self).__iter__():
+        if self.shuffle:
+            self.X, self.y = shuffle(self.X, self.y)
+        for res in super(BatchIterator, self).__iter__():
             yield res
 
 class ImageBatchIterator(BatchIterator):
@@ -63,13 +71,20 @@ class ImageBatchIterator(BatchIterator):
         else:
             Xb_actual = np.asarray( [ load_image(self.prefix + os.path.sep + x) for x in filenames ], dtype="float32" )
         return Xb_actual, yb
+    """
+    def __iter__(self):
+        if self.shuffle:
+            self.X, self.y = shuffle(self.X, self.y)
+        for res in super(ImageBatchIterator, self).__iter__():
+            yield res
+    """
 
 class ReshapeBatchIterator(BatchIterator):
-    def __init__(self, new_xy, *args, **kwds):
+    def __init__(self, tp, *args, **kwds):
         super(ReshapeBatchIterator, self).__init__(*args, **kwds)
-        self.new_xy = new_xy
+        self.tp = tp
     def transform(self, Xb, yb):
-        Xb = Xb.reshape( Xb.shape[0], Xb.shape[1], self.new_xy[0], self.new_xy[1] )
+        Xb = Xb.reshape( Xb.shape[0], Xb.shape[1], self.tp[0], self.tp[1] )
         return Xb, yb
 
 def write_stats(info, filename):

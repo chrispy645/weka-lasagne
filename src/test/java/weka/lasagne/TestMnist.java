@@ -7,7 +7,6 @@ import weka.lasagne.layers.Conv2DLayer;
 import weka.lasagne.layers.DenseLayer;
 import weka.lasagne.layers.Layer;
 import weka.lasagne.objectives.CategoricalCrossEntropy;
-import weka.nolearn.BatchIterator;
 import weka.nolearn.ImageBatchIterator;
 
 public class TestMnist {
@@ -34,7 +33,7 @@ public class TestMnist {
 		it.setBatchSize(128);
 		it.setWidth(28);
 		it.setHeight(28);
-		it.setPrefix("/Users/cjb60/github/weka-lasagne/mnist-data");
+		it.setPrefix("\"/Users/cjb60/github/weka-lasagne/datasets/mnist-data\"");
 		net.setBatchIterator(it);
 		CategoricalCrossEntropy cat = new CategoricalCrossEntropy();
 		net.setLossFunction(cat);

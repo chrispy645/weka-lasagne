@@ -11,7 +11,7 @@ public class ImageBatchIterator extends BatchIterator {
 	
 	private int m_width = 0;
 	private int m_height = 0;
-	private String m_prefix = "\"\"";
+	private String m_prefix = "";
 	
 	private boolean m_isRgb = false;
 	
@@ -44,20 +44,25 @@ public class ImageBatchIterator extends BatchIterator {
 	}
 	
 	public void setPrefix(String prefix) {
-		m_prefix = "\"" + prefix + "\"";
+		m_prefix = prefix;
 	}
 
 	@Override
 	public String getOutputString() {
 		StringBuilder sb = new StringBuilder();
-		if(!getIsRgb()) sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
-		else sb.append(String.format("kw[\"input_shape\"] = (None, 3, %d, %d); ", getWidth(), getHeight()));
-		
+		if( !getIsRgb() ) {
+			sb.append(String.format("kw[\"input_shape\"] = (None, 1, %d, %d); ", getWidth(), getHeight()));
+		}
+		else {
+			sb.append(String.format("kw[\"input_shape\"] = (None, 3, %d, %d); ", getWidth(), getHeight()));
+		}	
 		sb.append("filenames = args[\"attr_values\"][args[\"attributes\"][0]]; ");
 		sb.append(String.format(
-				"kw[\"batch_iterator_train\"] = ImageBatchIterator(filenames, %s, batch_size=%d); ", getPrefix(), getBatchSize()));
+				"kw[\"batch_iterator_train\"] = ImageBatchIterator(filenames=filenames, prefix=%s, shuffle=%d, batch_size=%d); ",
+				getPrefix(), getShuffle() ? 1 : 0, getBatchSize()));
 		sb.append(String.format(
-				"kw[\"batch_iterator_test\"] = ImageBatchIterator(filenames, %s, batch_size=args[\"batch_size\"])", getPrefix()));
+				"kw[\"batch_iterator_test\"] = ImageBatchIterator(filenames=filenames, prefix=%s, shuffle=0, batch_size=args[\"batch_size\"])",
+				getPrefix()));
 		return sb.toString();
 	}
 	
@@ -86,6 +91,7 @@ public class ImageBatchIterator extends BatchIterator {
 		tmp = Utils.getOption(Constants.HEIGHT, options);
 		if(!tmp.equals("")) setHeight( Integer.parseInt(tmp) );
 		tmp = Utils.getOption(Constants.PREFIX, options);
+		System.out.println(tmp);
 		if(!tmp.equals("")) setPrefix(tmp);
 		setIsRgb( Utils.getFlag(Constants.RGB, options) );
 	}
