@@ -10,6 +10,7 @@ from nolearn.lasagne import *
 from pyscript.pyscript import *
 from weka.nolearn.draw_net import *
 from skimage import io, img_as_float
+import random
 import gzip
 import os
 import numpy as np
@@ -39,7 +40,7 @@ def load_image(filename, rotate=False):
     img = io.imread(filename)
     img = img_as_float(img)
     if rotate:
-        img = np.rot(img, random.randint(0, 3)
+        img = np.rot90(img, random.randint(0, 3))
     if len(img.shape) == 3 and img.shape[2] == 3:
         img = np.asarray( [ img[...,0], img[...,1], img[...,2] ] )
     else:
@@ -74,14 +75,6 @@ class ImageBatchIterator(BatchIterator):
         else:
             Xb_actual = np.asarray( [ load_image(self.prefix + os.path.sep + x) for x in filenames ], dtype="float32" )
         return Xb_actual, yb
-    """
-    def __iter__(self):
-        if self.shuffle:
-            self.X, self.y = shuffle(self.X, self.y)
-        for res in super(ImageBatchIterator, self).__iter__():
-            yield res
-    """
-
 
 class BasicRotateImageBatchIterator(ImageBatchIterator):
     def transform(self, Xb, yb):
