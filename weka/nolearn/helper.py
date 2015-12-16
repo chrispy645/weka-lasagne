@@ -8,6 +8,7 @@ from __future__ import print_function
 import nolearn.lasagne
 from nolearn.lasagne import *
 from pyscript.pyscript import *
+from weka.nolearn.draw_net import *
 from skimage import io, img_as_float
 import gzip
 import os

@@ -279,6 +279,9 @@ public class LasagneNet extends RandomizableClassifier implements BatchPredictor
 		//m_cls.setBatchSize( getBatchSize() );
 		String args = String.format("num_epochs=%d;seed=%d;batch_size=%s",
 				getNumEpochs(), getSeed(), getBatchSize() );
+		if( getDebug() ) {
+			args = args + ";debug=True";
+		}
 		if(data.numClasses() == 1) {
 			args = args + ";regression=1";
 		} else {

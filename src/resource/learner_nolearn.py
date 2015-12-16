@@ -14,6 +14,7 @@ import numpy as np
 import sys
 import re
 import random
+import tempfile
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -30,6 +31,11 @@ def train(args):
     else:
         y_train = np.asarray(args["y_train"].flatten(), dtype="int32")
     net1 = get_net(args)
+    net1.initialize()
+    if "debug" in args:
+        tf = tempfile.NamedTemporaryFile()
+        draw_to_file(net1.get_all_layers(), tf.name + ".png")
+        print("Graph image: %s" % (tf.name + ".png"))
     X_train = np.asarray(args["X_train"], dtype="float32")
     X_train = X_train.reshape( (X_train.shape[0], 1, X_train.shape[1]) )
     with Capturing() as output:
