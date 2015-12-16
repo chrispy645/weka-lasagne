@@ -35,9 +35,11 @@ class Capturing(list):
         self.extend(self._stringio.getvalue().splitlines())
         sys.stdout = self._stdout
 
-def load_image(filename):
+def load_image(filename, rotate=False):
     img = io.imread(filename)
     img = img_as_float(img)
+    if rotate:
+        img = np.rot(img, random.randint(0, 3)
     if len(img.shape) == 3 and img.shape[2] == 3:
         img = np.asarray( [ img[...,0], img[...,1], img[...,2] ] )
     else:
@@ -79,6 +81,18 @@ class ImageBatchIterator(BatchIterator):
         for res in super(ImageBatchIterator, self).__iter__():
             yield res
     """
+
+
+class BasicRotateImageBatchIterator(ImageBatchIterator):
+    def transform(self, Xb, yb):
+        filenames = np.asarray( [ self.filenames[int(x)] for x in Xb.flatten().tolist() ] )
+        if self.prefix == "":
+            Xb_actual = np.asarray( 
+                [ load_image(x, rotate=True) for x in filenames ], dtype="float32" )
+        else:
+            Xb_actual = np.asarray(
+                [ load_image(self.prefix + os.path.sep + x, rotate=True) for x in filenames ], dtype="float32" )
+        return Xb_actual, yb
 
 class ReshapeBatchIterator(BatchIterator):
     def __init__(self, tp, *args, **kwds):
