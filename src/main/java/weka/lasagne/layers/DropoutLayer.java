@@ -36,7 +36,7 @@ public class DropoutLayer extends Layer {
 	@Override
 	public String getOutputString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("kw[\"%s_%s\"] = %d", getName(), "p", getP() ) );
+		sb.append(String.format("kw[\"%s_%s\"] = %f", getName(), "p", getP() ) );
 		return sb.toString();
 	}
 
